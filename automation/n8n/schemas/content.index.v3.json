@@ -1,0 +1,32 @@
+{
+  "$id": "content.index.v3",
+  "type": "object",
+  "required": [
+    "type",
+    "version",
+    "id",
+    "occurredAt"
+  ],
+  "properties": {
+    "type": {
+      "const": "article.changed"
+    },
+    "version": {
+      "const": "v3"
+    },
+    "id": {
+      "type": "string"
+    },
+    "operation": {
+      "enum": [
+        "create",
+        "update",
+        "delete"
+      ]
+    },
+    "occurredAt": {
+      "format": "date-time",
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": [
+        "mcp-github@latest"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    },
+    "archon": {
+      "type": "http",
+      "url": "http://localhost:8051/mcp"
+    },
+    "n8n": {
+      "command": "npx",
+      "args": [
+        "n8n-mcp@latest"
+      ],
+      "env": {
+        "MCP_MODE": "stdio",
+        "N8N_API_URL": "https://your-n8n.example.com/api/v1",
+        "N8N_API_KEY": "REPLACE_ME"
+      }
+    }
+  }
+}

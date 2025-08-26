@@ -1,0 +1,14 @@
+node_modules
+.DS_Store
+.env*
+.next
+dist
+coverage
+.vscode
+.vercel
+playwright-report
+test-results
+*.log
+pnpm-lock.yaml
+yarn.lock
+package-lock.json

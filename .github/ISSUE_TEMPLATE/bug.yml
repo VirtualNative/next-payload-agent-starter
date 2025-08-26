@@ -1,0 +1,19 @@
+name: Bug
+description: Something is broken
+labels: ["type:bug"]
+body:
+  - type: input
+    id: summary
+    attributes: { label: What’s wrong? }
+  - type: textarea
+    id: repro
+    attributes: { label: Repro steps / env / logs }
+  - type: input
+    id: expected
+    attributes: { label: Expected }
+  - type: input
+    id: actual
+    attributes: { label: Actual }
+  - type: textarea
+    id: checks
+    attributes: { label: Checks, description: Screenshots, console, network }

@@ -1,0 +1,19 @@
+{
+  "name": "next-payload-starter",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "version": "0.1.0",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "automation/*"
+  ],
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint || true",
+    "test": "pnpm -r test",
+    "integrate:n8n": "node scripts/integrate-n8n.js",
+    "integrate:motion": "node scripts/integrate-motion.js"
+  }
+}
