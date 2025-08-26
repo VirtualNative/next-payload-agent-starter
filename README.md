@@ -48,7 +48,6 @@ package.json     # pnpm workspaces: apps/, automation/
 
 ## 🔧 Quick start
 
-```bash
 pnpm install
 
 # Terminal A: Payload CMS
