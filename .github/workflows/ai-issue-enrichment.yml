@@ -1,0 +1,201 @@
+# AI-CONTEXT: Automatically enriches GitHub Issues with metadata
+# PATTERN: Helps AI agents understand task scope and requirements
+
+name: AI Issue Enrichment
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Analyze Issue
+        id: analyze
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const body = issue.body || '';
+            
+            // Extract information from issue
+            const analysis = {
+              hasOutcome: body.includes('Outcome:'),
+              hasAcceptanceCriteria: body.includes('Acceptance Criteria:') || body.includes('AC:'),
+              hasTestNote: body.includes('Test Note:') || body.includes('Testing:'),
+              estimatedSize: 'medium', // Default
+              suggestedLabels: [],
+              suggestedComponents: []
+            };
+            
+            // Estimate size based on keywords
+            const lowerBody = body.toLowerCase();
+            if (lowerBody.match(/simple|quick|minor|small|typo/)) {
+              analysis.estimatedSize = 'small';
+            } else if (lowerBody.match(/complex|major|large|refactor|architecture/)) {
+              analysis.estimatedSize = 'large';
+            }
+            
+            // Suggest type labels
+            if (lowerBody.match(/bug|fix|error|broken|issue/)) {
+              analysis.suggestedLabels.push('type:bug');
+            } else if (lowerBody.match(/feature|add|new|implement/)) {
+              analysis.suggestedLabels.push('type:feature');
+            } else if (lowerBody.match(/docs|documentation|readme/)) {
+              analysis.suggestedLabels.push('type:docs');
+            } else if (lowerBody.match(/test|testing|qa/)) {
+              analysis.suggestedLabels.push('type:test');
+            }
+            
+            // Suggest component labels
+            if (lowerBody.match(/api|endpoint|backend/)) {
+              analysis.suggestedComponents.push('component:api');
+            }
+            if (lowerBody.match(/ui|frontend|component|style/)) {
+              analysis.suggestedComponents.push('component:ui');
+            }
+            if (lowerBody.match(/cms|payload|admin/)) {
+              analysis.suggestedComponents.push('component:cms');
+            }
+            if (lowerBody.match(/auth|login|user|permission/)) {
+              analysis.suggestedComponents.push('component:auth');
+            }
+            
+            // Add agent label if it looks AI-friendly
+            if (analysis.hasOutcome && analysis.hasAcceptanceCriteria) {
+              analysis.suggestedLabels.push('agent');
+            }
+            
+            // Add size label
+            analysis.suggestedLabels.push(`size:${analysis.estimatedSize}`);
+            
+            return analysis;
+            
+      - name: Apply Labels
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const analysis = ${{ steps.analyze.outputs.result }};
+            const issue = context.payload.issue;
+            
+            // Get existing labels
+            const existingLabels = issue.labels.map(l => l.name);
+            
+            // Combine suggested labels
+            const allSuggested = [
+              ...analysis.suggestedLabels,
+              ...analysis.suggestedComponents
+            ];
+            
+            // Filter out already applied labels
+            const newLabels = allSuggested.filter(label => 
+              !existingLabels.includes(label)
+            );
+            
+            // Apply new labels
+            if (newLabels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: newLabels
+              });
+            }
+            
+      - name: Add Comment if Missing Requirements
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const analysis = ${{ steps.analyze.outputs.result }};
+            const issue = context.payload.issue;
+            
+            // Check if we need to add a comment
+            const missingItems = [];
+            
+            if (!analysis.hasOutcome) {
+              missingItems.push('- **Outcome**: A one-sentence description of what will be accomplished');
+            }
+            if (!analysis.hasAcceptanceCriteria) {
+              missingItems.push('- **Acceptance Criteria**: Testable requirements that define "done"');
+            }
+            if (!analysis.hasTestNote) {
+              missingItems.push('- **Test Note**: What should be tested to verify the work');
+            }
+            
+            if (missingItems.length > 0) {
+              const comment = `## 🤖 AI Agent Notice
+            
+This issue is missing some required information for AI agents to work effectively:
+
+${missingItems.join('\n')}
+
+### Example Format:
+\`\`\`
+**Outcome:** User can filter blog posts by category
+
+**Acceptance Criteria:**
+- Category dropdown appears above post list
+- Selecting a category updates the list immediately
+- "All Categories" option shows all posts
+- URL updates to reflect selected category
+
+**Test Note:** Verify category filter updates post list and persists on page refresh
+\`\`\`
+
+Please update the issue description to include these items. This helps both human developers and AI agents understand the task requirements.`;
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: comment
+              });
+            }
+            
+      - name: Link Related Issues
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = (issue.body || '').toLowerCase();
+            
+            // Search for potentially related issues
+            const searchTerms = title.split(' ')
+              .filter(word => word.length > 3)
+              .slice(0, 3)
+              .join(' OR ');
+            
+            const related = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} ${searchTerms} -number:${issue.number}`,
+              per_page: 5,
+              sort: 'updated'
+            });
+            
+            if (related.data.items.length > 0) {
+              const links = related.data.items
+                .map(item => `- #${item.number} - ${item.title}`)
+                .join('\n');
+              
+              const comment = `## 🔗 Potentially Related Issues
+
+Found these issues that might be related:
+
+${links}
+
+Consider if any of these should be linked or referenced in your implementation.`;
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: comment
+              });
+            }

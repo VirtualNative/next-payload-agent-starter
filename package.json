@@ -14,6 +14,9 @@
     "lint": "pnpm -r lint || true",
     "test": "pnpm -r test",
     "integrate:n8n": "node scripts/integrate-n8n.js",
-    "integrate:motion": "node scripts/integrate-motion.js"
+    "integrate:motion": "node scripts/integrate-motion.js",
+    "scaffold:component": "node scripts/scaffold/component.js",
+    "scaffold:api": "node scripts/scaffold/api.js",
+    "scaffold:page": "node scripts/scaffold/page.js"
   }
 }
