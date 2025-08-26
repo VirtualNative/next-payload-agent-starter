@@ -4,7 +4,7 @@ markdown# 🚀 Next + Payload Agent Starter
 A modern, open-source starter for building production apps with Next.js + Payload CMS + Tailwind + shadcn/ui + TypeScript — wired for GitHub-native AI agent workflows (MCP), Playwright MCP QA, and Vercel deploys. Optional one-command add-ons: Framer Motion (UI animations) and n8n (product automation).
 
 <p align="center">
-  <img src="assets/npas-readme-banner-1280x640.png" alt="Next + Payload Agent Starter banner" width="100%" />
+  <img src="https://repository-images.githubusercontent.com/1045208135/7306f7ae-d5a8-4fc0-8930-3459ab15d4b5" alt="Next + Payload Agent Starter banner" width="100%" />
 </p>
 
 ## ✨ Why this exists
